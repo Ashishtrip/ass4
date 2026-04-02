@@ -1,4 +1,9 @@
 class QAItem {
+    /**
+     * Represents a single FAQ Q&A pair with toggle functionality.
+     * @param {string} question - The question text
+     * @param {string} answer - The answer text
+     */
     constructor(question, answer) {
         this.question = question;
         this.answer = answer;
@@ -7,53 +12,90 @@ class QAItem {
         this.questionElement = null;
         this.answerElement = null;
         this.toggleIcon = null;
+    this.answerId = `ans-${Math.random().toString(36).substr(2, 9)}`; // Unique ID for ARIA
     }
 
-    // Toggle visibility of the answer
+    /**
+     * Toggle the expanded state of this FAQ item and update UI/accessibility.
+     */
     toggle() {
         this.isExpanded = !this.isExpanded;
         this.updateUI();
     }
 
-    // Update visual cue and visibility
+    /**
+     * Updates the DOM for expanded/collapsed state:
+     * - Icon text (+/-), rotation class removed via CSS
+     * - Dynamic maxHeight for smooth scalable animation
+     * - ARIA attributes for accessibility
+     */
     updateUI() {
         if (this.toggleIcon) {
             this.toggleIcon.textContent = this.isExpanded ? '−' : '+';
         }
         if (this.answerElement) {
             this.answerElement.classList.toggle('active', this.isExpanded);
+            // Dynamic max-height for scalable animation
+            if (this.isExpanded) {
+                this.answerElement.style.maxHeight = `${this.answerElement.scrollHeight}px`;
+            } else {
+                this.answerElement.style.maxHeight = '0px';
+            }
         }
+
         if (this.questionElement) {
             this.questionElement.classList.toggle('active', this.isExpanded);
+            // Update ARIA for screen readers
+            this.questionElement.setAttribute('aria-expanded', this.isExpanded);
         }
     }
 
-    // Render HTML for this QAItem
+    /**
+     * Generates semantic HTML for this FAQ item with accessibility features.
+     * Uses <article> and <h2> for better semantics/SEO/accessibility.
+     * Adds keyboard support (Enter/Space) and ARIA attributes.
+     * @returns {HTMLElement} The rendered FAQ item
+     */
     render() {
-        const faqItem = document.createElement('div');
+        const faqItem = document.createElement('article');
         faqItem.className = 'faq-item';
 
-        const questionDiv = document.createElement('div');
-        questionDiv.className = 'question';
-        questionDiv.innerHTML = `
+        const questionEl = document.createElement('h2');
+        questionEl.className = 'question';
+        questionEl.setAttribute('role', 'button');
+        questionEl.setAttribute('tabindex', '0');
+        questionEl.setAttribute('aria-expanded', 'false');
+        questionEl.setAttribute('aria-controls', this.answerId);
+        questionEl.innerHTML = `
             ${this.question}
-            <span class="toggle-icon">+</span>
+            <span class="toggle-icon" aria-hidden="true">+</span>
         `;
 
         const answerDiv = document.createElement('div');
+        answerDiv.id = this.answerId;
         answerDiv.className = 'answer';
         answerDiv.innerHTML = `<p>${this.answer}</p>`;
 
-        faqItem.appendChild(questionDiv);
+        faqItem.appendChild(questionEl);
         faqItem.appendChild(answerDiv);
 
         this.element = faqItem;
-        this.questionElement = questionDiv;
+        this.questionElement = questionEl;
         this.answerElement = answerDiv;
-        this.toggleIcon = questionDiv.querySelector('.toggle-icon');
+        this.toggleIcon = questionEl.querySelector('.toggle-icon');
 
-        // Add event listener
-        questionDiv.addEventListener('click', () => this.toggle());
+        // Event listeners: mouse click + keyboard (Enter/Space)
+        const toggleHandler = (e) => {
+            if (e.type === 'keydown' && e.key !== 'Enter' && e.key !== ' ') {
+                return;
+            }
+            if (e.type === 'keydown') {
+                e.preventDefault();
+            }
+            this.toggle();
+        };
+        questionEl.addEventListener('click', toggleHandler);
+        questionEl.addEventListener('keydown', toggleHandler);
 
         return faqItem;
     }
@@ -75,7 +117,10 @@ const faqData = [
     )
 ];
 
-// Initialize the FAQ when DOM is loaded
+/**
+ * Initialize the FAQ section when DOM is ready:
+ * Renders all QAItems from faqData into the container.
+ */
 document.addEventListener('DOMContentLoaded', () => {
     const faqContainer = document.getElementById('faq-items');
     

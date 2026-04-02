@@ -29,6 +29,7 @@ h1 {
     align-items: center;
     transition: background-color 0.3s ease;
     user-select: none;
+    /* h2[role=button] styling for semantics */
 }
 
 .question:hover {
@@ -37,12 +38,9 @@ h1 {
 
 .toggle-icon {
     font-size: 20px;
-    font-weight: bold;
-    transition: transform 0.3s ease;
-}
-
-.question.active .toggle-icon {
-    transform: rotate(45deg);
+    font-weight: bolder;
+    transition: none; /* No rotation; use JS text swap for clarity */
+    line-height: 1;
 }
 
 .answer {
@@ -50,11 +48,11 @@ h1 {
     overflow: hidden;
     background-color: white;
     padding: 0 20px;
-    transition: max-height 0.4s ease, padding 0.3s ease;
+    transition: max-height 0.4s ease, padding 0.3s 0.1s ease;
 }
 
 .answer.active {
-    max-height: 200px; /* Adjust based on content */
+    /* max-height set dynamically by JS.scrollHeight for scalability */
     padding: 20px;
 }
 
